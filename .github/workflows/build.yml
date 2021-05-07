@@ -3,9 +3,7 @@ name: Build
 on:
   push:
   pull_request:
-  workflow_run:
-    types:
-      - requested
+  workflow_dispatch:
 
 jobs:
   build_source:
