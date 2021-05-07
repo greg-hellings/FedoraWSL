@@ -19,6 +19,8 @@ jobs:
           name: tarball
 
   build_installer:
+    needs:
+      - build_source
     name: Build .msix installer
     runs-on: windows-latest
     steps:
