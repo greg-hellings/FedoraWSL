@@ -1,4 +1,4 @@
-FROM fedora:34
+FROM fedora:latest
 
 RUN dnf -y install 'dnf-command(copr)' passwd sudo && \
     dnf -y copr enable trustywolf/wslu && \
