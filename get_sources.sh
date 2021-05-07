@@ -1,5 +1,5 @@
 #!/bin/bash
-pkg="$(realink -f "$(dirname "${0}")")"
+pkg="$(readlink -f "$(dirname "${0}")")"
 version=34
 
 podman build -t fedwsl:${version} "${pkg}"
