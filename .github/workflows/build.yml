@@ -31,3 +31,7 @@ jobs:
         run: |
           Import-Certificate --filepath .\DistroLauncher-Appx\SelfSigningCertificate.cer --certStorelocation cert:\currentuser\my
           .\build.bat
+      - uses: actions/upload-artifact@v2
+        with:
+          name: installer
+          path: x64/Debug/DistroLauncher-Appx/*.appx
