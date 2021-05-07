@@ -5,27 +5,41 @@
 
 #include "stdafx.h"
 
+bool DistributionInfo::RunCommand(std::wstring command)
+{
+    DWORD exitCode;
+    HRESULT hr = g_wslApi.WslLaunchInteractive(command.c_str(), true, &exitCode);
+    if ((FAILED(hr)) || (exitCode != 0)) {
+        return false;
+    }
+    return true;
+}
+
 bool DistributionInfo::CreateUser(std::wstring_view userName)
 {
     // Create the user account.
     DWORD exitCode;
-    std::wstring commandLine = L"/usr/sbin/adduser --quiet --gecos '' ";
+    std::wstring commandLine = L"/usr/sbin/adduser ";
     commandLine += userName;
-    HRESULT hr = g_wslApi.WslLaunchInteractive(commandLine.c_str(), true, &exitCode);
-    if ((FAILED(hr)) || (exitCode != 0)) {
+    Helpers::PrintMessage(MSG_CREATE_USER);
+    if (!RunCommand(commandLine))
         return false;
-    }
+
+    commandLine = L"/usr/bin/passwd ";
+    commandLine += userName;
+    Helpers::PrintMessage(MSG_SET_USER_PASSWORD);
+    if (!RunCommand(commandLine))
+        return false;
 
     // Add the user account to any relevant groups.
-    commandLine = L"/usr/sbin/usermod -aG adm,cdrom,sudo,dip,plugdev ";
+    commandLine = L"/usr/sbin/usermod -aG wheel ";
     commandLine += userName;
-    hr = g_wslApi.WslLaunchInteractive(commandLine.c_str(), true, &exitCode);
-    if ((FAILED(hr)) || (exitCode != 0)) {
-
+    Helpers::PrintMessage(MSG_ADD_USER_GROUP);
+    if (!RunCommand(commandLine)) {
         // Delete the user if the group add command failed.
         commandLine = L"/usr/sbin/deluser ";
         commandLine += userName;
-        g_wslApi.WslLaunchInteractive(commandLine.c_str(), true, &exitCode);
+        RunCommand(commandLine);
         return false;
     }
 

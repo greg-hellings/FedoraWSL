@@ -1,41 +1,66 @@
-# WSL Distro Launcher Reference Implementation
+# Fedora WSL Installer
 ## Introduction 
-This is the C++ reference implementation for a Windows Subsystem for Linux (WSL) distribution installer/launcher application. Every distro package must include a launcher app, which is responsible for completing installation & registration of your distro with WSL, and for launching new distro instances atop WSL.
-
-Once you've built your distro launcher, packaged it along with the required art assets, manifest, and distro.tar.gz, and digitally signed the package, you will be able to sideload your distro on your own machine(s).
+This installer will create a usable WSL-based Fedora version to install in your Windows.
   
-## Important! 
-Before publishing your distro to the Windows Store, you must first reach-out to and get approval from the WSL team: wslpartners@microsoft.com. 
-
-Without testing and approval from the WSL team, distros submitted to the store will be rejected. This process is required in order to ensure the quality and integrity of the WSL distro ecosystem, and to safeguard our users.
-
 ## Goals
 The goal of this project is to enable:
 
-* Linux distribution owners to package and submit an application that runs on top of WSL to the Microsoft Store
-* Developers to create custom Linux distributions that can be sideloaded onto their dev machine
+* A user to easily install as base of a Fedora as possible into WSL2
+## Getting Started
+0. Prepare your system
+    * Install Visual Studio Community along with the "Universal Windows Platform development" and Windows 10 SDK versions
+    * Enable Developer Mode in Start -> Settings -> Update & Security -> For Developers
+    * Enable WSL
+        * Start Menu -> Manage Optional Features, search for Windows Subsystem for Linux and press OK
+        * Open PowerShell as Administrator, type `Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux`, and restart as necessary
+
+1. Generate a test certificate by running this PowerShell script
+```powershell
+$Subject = "CN=Your-appxmanifest-publisher"
+$Store = "Cert:\CurrentUser\My"
+
+# Delete old certificate
+Get-ChildItem $Store | Where-Object { $_.Subject -match $Subject } | Remove-Item
+
+# Create new certificate
+New-SelfSignedCertificate -Type Custom -Subject $Subject -KeyUsage DigitalSignature -FriendlyName "Fedora Test Certificate" -CertStoreLocation $Store -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+```
+    * Copy the Thumbprint
+    * Open DistroLauncher-Appx\DistroLauncher-Appx.vcxproj and replace the PackageCertificateThumbprint contents with the value of what you just generated
+    * Export it? Somehow?
+    * Open Certificate Manager, go to Trusted Root Certification Authorities, right click, All Tasks... -> Import
+    * Import your exported certificate file
+
+3. Create the install.tar.gz file by running ./get\_sources.sh
+    * Requires podman installed and working
+    * Creates install.tar.gz in the root of this project
+
+4. Update the version in DistroLauncher-Appx\FedoraWSL.appxmanifest if you are bumping beyond the current version.
+
+5. Execute .\build.bat
+
+6. Find the installer under x64\Debug\DistroLauncher-Appx
+    * Several files might be created all with the .appx extension
+    * The installer will be the one whose name ends with x64\_Debug.appx
 
 ## Contents
-This reference launcher provides the following functionality:
-(where `launcher.exe` is replaced by the distro-specific name)
-
-* `launcher.exe`
+* `fedora.exe`
   - Launches the user's default shell in the user's home directory.
 
-* `launcher.exe install [--root]`
+* `fedora.exe install [--root]`
   - Install the distribution and do not launch the shell when complete.
     - `--root`: Do not create a user account and leave the default user set to root.
 
-* `launcher.exe run <command line>`
+* `fedora.exe run <command line>`
   - Run the provided command line in the current working directory. If no command line is provided, the default shell is launched.
   - Everything after `run` is passed to WslLaunchInteractive.
 
-* `launcher.exe config [setting [value]]`
+* `fedora.exe config [setting [value]]`
   - Configure settings for this distribution.
   - Settings:
     - `--default-user <username>`: Sets the default user to <username>. This must be an existing user.
 
-* `launcher.exe help`
+* `fedora.exe help`
   - Print usage information.
 
 ## Launcher Outline
@@ -49,46 +74,6 @@ This is the basic flow of how the launcher code is set up.
 ## Project Structure
 The distro launcher is comprised of two Visual Studio projects - `launcher` and `DistroLauncher-Appx`. The `launcher` project builds the actual executable that is run when a user launches the app. The `DistroLauncher-Appx` builds the distro package with all the correctly scaled assets and other dependencies. Code changes will be built in the `launcher` project (under `DistroLauncher/`). Manifest changes are applied in the `DistroLauncher-Appx` project (under `DistroLauncher-Appx/`). 
 
-## Getting Started
-1. Generate a test certificate:
-    1. In Visual Studio, open `DistroLauncher-Appx/MyDistro.appxmanifest`
-    1. Select the Packaging tab
-    1. Select "Choose Certificate"
-    1. Click the Configure Certificate drop down and select Create test certificate.
-
-2. Edit your distribution-specific information in `DistributionInfo.h` and `DistributionInfo.cpp`. **NOTE: The `DistributionInfo::Name` variable must uniquely identify your distribution and cannot change from one version of your app to the next.**
-    > Note: The examples for creating a user account and querying the UID are from an Ubuntu-based system, and may need to be modified to work appropriately on your distribution.
-
-3.  Add an icon (.ico) and logo (.png) to the `/images` directory. The logo will be used in the Start Menu and the taskbar for your launcher, and the icon will appear on the Console window.
-    > Note: The icon must be named `icon.ico`.
-
-4. Pick the name you'd like to make this distro callable from the command line. For the rest of the README, I'll be using `mydistro` or `mydistro.exe`. **This is the name of your executable** and should be unique.
-
-5. Make sure to change the name of the project in the `DistroLauncher-Appx/DistroLauncher-Appx.vcxproj` file to the name of your executable we picked in step 4. By default, the lines should look like:
-
-``` xml
-<PropertyGroup Label="Globals">
-  ...
-  <TargetName>mydistro</TargetName>
-</PropertyGroup>
-```
-
-So, if I wanted to instead call my distro "TheBestDistroEver", I'd change this to:
-``` xml
-<PropertyGroup Label="Globals">
-  ...
-  <TargetName>TheBestDistroEver</TargetName>
-</PropertyGroup>
-```
-
-> Note: **DO NOT** change the ProjectName of the `DistroLauncher/DistroLauncher.vcxproj` from the value `launcher`. Doing so will break the build, as the DistroLauncher-Appx project is looking for the output of this project as `launcher.exe`.
-
-6.  Update `MyDistro.appxmanifest`. There are several properties that are in the manifest that will need to be updated with your specific values:
-    1. Note the `Identity Publisher` value (by default, `"CN=DistroOwner"`). We'll need that for testing the application.
-    1. Ensure `<desktop:ExecutionAlias Alias="mydistro.exe" />` ends in ".exe". This is the command that will be used to launch your distro from the command line and should match the executable name we picked in step 4.
-    1. Make sure each of the `Executable` values matches the executable name we picked in step 4.
-
-7. Copy your tar.gz containing your distro into the root of the project and rename it to `install.tar.gz`.
 
 ## Setting up your Windows Environment
 You will need a Windows environment to test that your app installs and works as expected. To set up a Windows environment for testing you can follow the steps from the [Windows Dev Center](https://developer.microsoft.com/en-us/windows/downloads/virtual-machines).
@@ -125,8 +110,6 @@ powershell Add-AppxPackage x64\Debug\DistroLauncher-Appx\DistroLauncher-Appx_1.0
 ### Building Project (Visual Studio):
 
 You can also easily build and deploy the distro launcher from Visual Studio. To sideload your appx on your machine for testing, all you need to do is right-click on the "Solution (DistroLauncher)" in the Solution Explorer and click "Deploy Solution". This should build the project and sideload it automatically for testing.
-
-In order run your solution under the Visual Studio debugger, you will need to copy your install.tar.gz file into your output folder, for example: `x64\Debug`. **NOTE: If you have registered your distribution by this method, you will need to manually unregister it via wslconfig.exe /unregister**
 
 ### Installing & Testing
 You should now have a finished appx sideloaded on your machine for testing.
@@ -166,11 +149,3 @@ You'll also need to change a few small things in your project to prepare your di
 2. You will either need to run `build rel` from the command line to generate the Release version of your appx or use Visual Studio directly to upload your package to the store. You can do this by right-clicking on "DistroLauncher-Appx (Universal Windows)" in the solution explorer and clicking on "Store... Create App Packages..." and following the wizard.
 
 Also, make sure to check out the [Notes for uploading to the Store](https://github.com/Microsoft/WSL-DistroLauncher/wiki/Notes-for-uploading-to-the-Store) page on our wiki for more information.
-
-# Issues & Contact
-Any bugs or problems discovered with the Launcher should be filed in this project's Issues list. The team will be notified and will respond to the reported issue within 3 (US) working days.
-
-You may also reach out to our team alias at wslpartners@microsoft.com for questions related to submitting your app to the Microsoft Store.
-
-# Contributing
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.

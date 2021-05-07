@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_run:
+    types:
+      - requested
+
+jobs:
+  build_source:
+    name: Build tarball for source
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run container build
+        run: ./get_sources.sh
+      - uses: actions/upload-artifact@v2
+        with:
+          path: install.tar.gz
+          name: tarball
+
+  build_installer:
+    name: Build .msix installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          path: .
+          name: tarball
+      - name: Run build
+        run: |
+          Import-Certificate --filepath .\DistroLauncher-Appx\SelfSigningCertificate.cer --certStorelocation cert:\currentuser\my
+          .\build.bat

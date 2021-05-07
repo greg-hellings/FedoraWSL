@@ -89,3 +89,18 @@ Language=English
 The distribution installation has become corrupted.
 Please select Reset from App Settings or uninstall and reinstall the app.
 .
+
+MessageId=1014 SymbolicName=MSG_CREATE_USER
+Language=English
+Creating User
+.
+
+MessageId=1015 SymbolicName=MSG_ADD_USER_GROUP
+Language=English
+Adding user to Wheel group
+.
+
+MessageId=1016 SymbolicName=MSG_SET_USER_PASSWORD
+Language=English
+Setting user password
+.
