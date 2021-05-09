@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  release:
+    types:
+      - published
+      - prereleased
 
 jobs:
   build_source:
@@ -38,3 +42,10 @@ jobs:
         with:
           name: installer
           path: x64/Debug/DistroLauncher-Appx/*.appx
+      - if: github.event_name == 'release'
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: DistroLauncher-Appx/SelfSigningCertificate.cer,x64/Debug/DistroLauncher-Appx/DistroLauncher-Appx*Debug.appx
+          allowUpdates: true
+          name: Release ${{ github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
