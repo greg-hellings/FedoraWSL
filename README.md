@@ -6,6 +6,29 @@ This installer will create a usable WSL-based Fedora version to install in your 
 The goal of this project is to enable:
 
 * A user to easily install as base of a Fedora as possible into WSL2
+
+## User Installation
+1. Go to the [releases page](https://github.com/greg-hellings/WSL-DistroLauncher/releases).
+
+2. If you've never installed this package before, install download the Certificate File and add it as a trusted
+  certificate authority on your system
+
+3. Download and install the appx file there and install it. Installation should automatically create a default user with
+  sudo access within the environment, as well as prompt you to update the password of that user.
+
+4. Use the FedoraWSL app installed on your system to launch a WSL instance
+
+## Upgrades
+If you already have Fedora side-loaded through another mechanism, this will not affect that install.
+
+If you already have an existing version of this system and want to upgrade the Fedora version, use built-in tools in Fedora to upgrade. Upgrading this app from
+one version of Fedora to another will not cause your system to upgrade the installed Fedora version. You will either need to use Fedora packaging tools or do a
+complete uninstall/reinstall to get the upgraded Fedora.
+
+If you need to start fresh, you will need to uninstall the FedoraWSL app, then you can re-install any version of this app that you want. A reboot may be required
+between uninstall and reinstall.
+
+# Developing the Installer
 ## Getting Started
 0. Prepare your system
     * Install Visual Studio Community along with the "Universal Windows Platform development" and Windows 10 SDK versions
@@ -97,6 +120,7 @@ To compile the project, you can simply type `build` in the root of the project t
 `%ProgramFiles*%\MSBuild\14.0\bin\msbuild.exe` or
 `%ProgramFiles*%\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\msbuild.exe` or
 `%ProgramFiles*%\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\msbuild.exe`.
+and other, similar, paths for Visual Studio 2019.
 
 If that's not the case, then you will need to modify that script.
 
