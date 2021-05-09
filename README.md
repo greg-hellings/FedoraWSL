@@ -8,7 +8,7 @@ The goal of this project is to enable:
 * A user to easily install as base of a Fedora as possible into WSL2
 
 ## User Installation
-1. Go to the [releases page](https://github.com/greg-hellings/WSL-DistroLauncher/releases).
+1. Go to the [releases page](https://github.com/greg-hellings/FedoraWSL/releases).
 
 2. If you've never installed this package before, install download the Certificate File and add it as a trusted
   certificate authority on your system
@@ -124,7 +124,7 @@ and other, similar, paths for Visual Studio 2019.
 
 If that's not the case, then you will need to modify that script.
 
-Once you've completed the build, the packaged appx should be placed in a directory like `WSL-DistroLauncher\x64\Release\DistroLauncher-Appx` and should be named something like `DistroLauncher-Appx_1.0.0.0_x64.appx`. Simply double click that appx file to open the sideloading dialog. 
+Once you've completed the build, the packaged appx should be placed in a directory like `FedoraWSL\x64\Release\DistroLauncher-Appx` and should be named something like `DistroLauncher-Appx_1.0.0.0_x64.appx`. Simply double click that appx file to open the sideloading dialog. 
 
 You can also use the PowerShell cmdlet `Add-AppxPackage` to register your appx:
 ``` powershell
