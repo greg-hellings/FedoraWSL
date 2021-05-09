@@ -48,4 +48,6 @@ jobs:
           artifacts: DistroLauncher-Appx/SelfSigningCertificate.cer,x64/Debug/DistroLauncher-Appx/DistroLauncher-Appx*Debug.appx
           allowUpdates: true
           name: Release ${{ github.ref }}
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
           token: ${{ secrets.GITHUB_TOKEN }}
