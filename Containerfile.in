@@ -1,5 +1,6 @@
 FROM fedora:latest
 
+ADD wsl.conf /etc/wsl.conf
 RUN dnf -y install 'dnf-command(copr)' passwd sudo && \
     dnf -y copr enable trustywolf/wslu && \
     dnf -y install wslu && \
